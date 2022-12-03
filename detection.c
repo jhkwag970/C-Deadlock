@@ -163,10 +163,18 @@ void recovery(int** allocation,int** request,int* available){
     int* yield = (int*) malloc(sizeof(int)*PROCESS_NO);
     int* need = (int*) malloc(sizeof(int)*RESOURCE_NO);
 
+    for(k=0;k<RESOURCE_NO;k++){
+        need[k]=0;
+    }
+
+    for(k=0;k<PROCESS_NO;k++){
+        yield[k]=0;
+    }
+
 
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
-            if(request[i][j] >= available[j]){
+            if(request[i][j] > available[j]){
                 need[j]=request[i][j]-available[j];
             }
         }
@@ -181,11 +189,11 @@ void recovery(int** allocation,int** request,int* available){
         }
         
     }
-    /*
+    
     for(i=0;i<PROCESS_NO;i++){
         printf("%d ", yield[i]);
     }
-    */
+    
 
 
     free(yield);
@@ -241,58 +249,58 @@ int main(){
         request[i] = (int*)malloc(sizeof(int)*RESOURCE_NO);
     }
     
-    /*
+    
     assignResource(allocation, request, available);
 
     printTable(allocation, request, available);
     bool isDeadlock = detection(allocation, request, available);
 
     printf("%s\n", isDeadlock ? "true" : "false");
-    */
+
     
     allocation[0][0]=2;
-    allocation[0][1]=1;
+    allocation[0][1]=0;
     allocation[0][2]=1;
 
     allocation[1][0]=2;
     allocation[1][1]=2;
-    allocation[1][2]=0;
+    allocation[1][2]=2;
 
-    allocation[2][0]=2;
+    allocation[2][0]=1;
     allocation[2][1]=1;
-    allocation[2][2]=1;
+    allocation[2][2]=2;
 
-    allocation[3][0]=0;
-    allocation[3][1]=2;
+    allocation[3][0]=1;
+    allocation[3][1]=1;
     allocation[3][2]=2;
 
     allocation[4][0]=2;
-    allocation[4][1]=1;
-    allocation[4][2]=2;
+    allocation[4][1]=2;
+    allocation[4][2]=0;
 
         request[0][0]=0;
-    request[0][1]=2;
-    request[0][2]=1;
+    request[0][1]=3;
+    request[0][2]=4;
 
-    request[1][0]=4;
-    request[1][1]=0;
-    request[1][2]=0;
+    request[1][0]=2;
+    request[1][1]=1;
+    request[1][2]=2;
 
     request[2][0]=0;
-    request[2][1]=1;
-    request[2][2]=1;
+    request[2][1]=3;
+    request[2][2]=5;
 
-    request[3][0]=5;
-    request[3][1]=0;
-    request[3][2]=0;
+    request[3][0]=0;
+    request[3][1]=3;
+    request[3][2]=1;
 
-    request[4][0]=5;
-    request[4][1]=3;
+    request[4][0]=2;
+    request[4][1]=0;
     request[4][2]=1;
 
-    available[0]=2;
-    available[1]=0;
-    available[2]=0;
+    available[0]=0;
+    available[1]=1;
+    available[2]=2;
 
     printTable(allocation, request, available);    
     recovery(allocation,request,available);
