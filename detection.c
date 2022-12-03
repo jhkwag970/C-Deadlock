@@ -156,6 +156,13 @@ void yieldProcess(int** allocation, int* need, int* yield, int idx){
         
     }
 }
+void initializeArray(int*array, int size){
+    int k;
+    for(k=0;k<size;k++){
+        array[k]=0;
+    }
+
+}
 
 void recovery(int** allocation,int** request,int* available){
     printf("Recovery\n");
@@ -163,14 +170,16 @@ void recovery(int** allocation,int** request,int* available){
     int* yield = (int*) malloc(sizeof(int)*PROCESS_NO);
     int* need = (int*) malloc(sizeof(int)*RESOURCE_NO);
 
+    /*
     for(k=0;k<RESOURCE_NO;k++){
         need[k]=0;
     }
-
     for(k=0;k<PROCESS_NO;k++){
         yield[k]=0;
     }
-
+    */
+    initializeArray(need,RESOURCE_NO);
+    initializeArray(yield,PROCESS_NO);
 
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
@@ -184,10 +193,12 @@ void recovery(int** allocation,int** request,int* available){
         }printf("\n");
         
         yieldProcess(allocation, need, yield, i);
+        initializeArray(need,RESOURCE_NO);
+        /*
         for(k=0;k<RESOURCE_NO;k++){
             need[k]=0;
         }
-        
+        */
     }
     
     for(i=0;i<PROCESS_NO;i++){
