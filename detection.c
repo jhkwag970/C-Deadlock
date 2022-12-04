@@ -187,11 +187,11 @@ void recovery(int** allocation,int** request,int* available){
                 need[j]=request[i][j]-available[j];
             }
         }
-        
+        /*
         for(k=0;k<RESOURCE_NO;k++){
             printf("%d ", need[k]);
         }printf("\n");
-        
+        */
         yieldProcess(allocation, need, yield, i);
         initializeArray(need,RESOURCE_NO);
         /*
@@ -260,60 +260,14 @@ int main(){
         request[i] = (int*)malloc(sizeof(int)*RESOURCE_NO);
     }
     
-    /*
+ 
     assignResource(allocation, request, available);
 
     printTable(allocation, request, available);
     bool isDeadlock = detection(allocation, request, available);
 
     printf("%s\n", isDeadlock ? "true" : "false");
-*/
     
-    allocation[0][0]=2;
-    allocation[0][1]=0;
-    allocation[0][2]=0;
-
-    allocation[1][0]=0;
-    allocation[1][1]=2;
-    allocation[1][2]=0;
-
-    allocation[2][0]=0;
-    allocation[2][1]=1;
-    allocation[2][2]=2;
-
-    allocation[3][0]=2;
-    allocation[3][1]=2;
-    allocation[3][2]=1;
-
-    allocation[4][0]=0;
-    allocation[4][1]=1;
-    allocation[4][2]=1;
-
-        request[0][0]=0;
-    request[0][1]=2;
-    request[0][2]=0;
-
-    request[1][0]=1;
-    request[1][1]=1;
-    request[1][2]=0;
-
-    request[2][0]=1;
-    request[2][1]=2;
-    request[2][2]=0;
-
-    request[3][0]=1;
-    request[3][1]=2;
-    request[3][2]=0;
-
-    request[4][0]=1;
-    request[4][1]=2;
-    request[4][2]=0;
-
-    available[0]=2;
-    available[1]=0;
-    available[2]=0;
-
-    printTable(allocation, request, available);    
     recovery(allocation,request,available);
     
 
