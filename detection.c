@@ -72,7 +72,10 @@ bool checkDeadlock(int* finish){
 }
 
 bool detection(int** allocation, int** request, int* available){
+    printf("\n===================================================================================================================================\n");
+    printf("===================================================================================================================================\n");
     printf("\ndetection\n");
+    printTable(allocation, request, available);
     int i,j;
     int* work = (int*) malloc(sizeof(int)*RESOURCE_NO);
     int* finish = (int*) malloc(sizeof(int)*PROCESS_NO);
@@ -140,7 +143,6 @@ bool detection(int** allocation, int** request, int* available){
 
 
 void yieldProcess(int** allocation, int* need, int* yield, int idx){
-    printf("yield\n");
     int i,j;
     for(i=0;i<PROCESS_NO;i++){
         if (i!=idx){
@@ -164,20 +166,29 @@ void initializeArray(int*array, int size){
 
 }
 
+int findVictim(int* yield){
+    int i, max=0, idx;
+    for(i=0;i<PROCESS_NO;i++){
+        if(max < yield[i]){
+            max=yield[i];
+            idx=i;
+        }
+    }
+    if(max!=0){
+        yield[idx]=0;
+    }
+    return idx;
+    
+}
+
 void recovery(int** allocation,int** request,int* available){
+
     printf("Recovery\n");
+    
     int i,j,k;
     int* yield = (int*) malloc(sizeof(int)*PROCESS_NO);
     int* need = (int*) malloc(sizeof(int)*RESOURCE_NO);
 
-    /*
-    for(k=0;k<RESOURCE_NO;k++){
-        need[k]=0;
-    }
-    for(k=0;k<PROCESS_NO;k++){
-        yield[k]=0;
-    }
-    */
     initializeArray(need,RESOURCE_NO);
     initializeArray(yield,PROCESS_NO);
 
@@ -194,16 +205,33 @@ void recovery(int** allocation,int** request,int* available){
         */
         yieldProcess(allocation, need, yield, i);
         initializeArray(need,RESOURCE_NO);
-        /*
-        for(k=0;k<RESOURCE_NO;k++){
-            need[k]=0;
+    }
+
+
+    while(detection(allocation, request, available)){
+
+        for(i=0;i<PROCESS_NO;i++){
+            printf("%d ", yield[i]);
         }
-        */
+
+        int victim = findVictim(yield);
+        printf("\nVictim is %d\n", victim);
+
+        
+        for(i=0;i<PROCESS_NO;i++){
+            printf("%d ", yield[i]);
+        }
+
+        
+        for(i=0;i<RESOURCE_NO;i++){
+            request[victim][i] += allocation[victim][i];
+            available[i] += allocation[victim][i];
+            allocation[victim][i]=0;
+        }
+
+
     }
     
-    for(i=0;i<PROCESS_NO;i++){
-        printf("%d ", yield[i]);
-    }
     
 
 
@@ -230,11 +258,13 @@ void assignResource(int** allocation, int** request, int* available){
         available[i]=resource;
         resouceMax[i]+=resource;
     }
+    /*
     printf("\n----------------\n");
     for(i=0; i<RESOURCE_NO;i++){
         printf("%d ", resouceMax[i]);
     }
     printf("\n----------------\n");
+    */
 
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
@@ -263,12 +293,14 @@ int main(){
  
     assignResource(allocation, request, available);
 
-    printTable(allocation, request, available);
+    /*
     bool isDeadlock = detection(allocation, request, available);
 
     printf("%s\n", isDeadlock ? "true" : "false");
+    */
     
     recovery(allocation,request,available);
+
     
 
 
