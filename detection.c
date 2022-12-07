@@ -6,6 +6,9 @@
 #define PROCESS_NO 5
 #define RESOURCE_NO 3
 #define MAX_RESOURCE 3
+#define FINISH 1
+#define UNFINISH 0
+#define DEADLOCK -1
 
 
 /*
@@ -60,9 +63,8 @@ Return:
 
 bool findDeadlock(int* finish){
     int i;
-    int notAssigned=0;
     for(i=0;i<PROCESS_NO;i++){
-        if(finish[i]==notAssigned){
+        if(finish[i]==UNFINISH){
             return true;
         }
     }
@@ -80,8 +82,8 @@ void resetDeadlock(int* finish){
     int assigned=-1;
     int notAssigned=0;
     for(i=0;i<PROCESS_NO;i++){
-        if(finish[i]==assigned){
-            finish[i]=notAssigned;
+        if(finish[i]==DEADLOCK){
+            finish[i]=UNFINISH;
         }
     }
 }
@@ -96,9 +98,8 @@ returns
 
 bool checkDeadlock(int* finish){
     int i;
-    int assignedFailed=-1;
     for(i=0;i<PROCESS_NO;i++){
-        if(finish[i]==assignedFailed){
+        if(finish[i]==DEADLOCK){
             return true;
         }
     }
@@ -116,11 +117,10 @@ params:
 
 void initialzieFinish(int* finish, int** allocation){
     int i,j;
-    int done=0;
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
-            if(allocation[i][j] != done){
-                finish[i]=done;
+            if(allocation[i][j] != UNFINISH){
+                finish[i]=UNFINISH;
                 break;
             }
         }
@@ -160,7 +160,6 @@ bool detection(int** allocation, int** request, int* available){
     printf("\ndetection\n");
     printTable(allocation, request, available);
     int i,j;
-    int reset=-1;
     int* work = (int*) malloc(sizeof(int)*RESOURCE_NO);
     int* finish = (int*) malloc(sizeof(int)*PROCESS_NO);
 
@@ -179,7 +178,7 @@ bool detection(int** allocation, int** request, int* available){
         
         for(i=0;i<RESOURCE_NO;i++){
             if (request[idx][i] > work[i]){
-                finish[idx]=reset;
+                finish[idx]=DEADLOCK;
                 break;
             }
             if(i==RESOURCE_NO-1){
@@ -187,7 +186,7 @@ bool detection(int** allocation, int** request, int* available){
                     work[j]+=allocation[idx][j];
                     finish[idx]=1;
                 }
-                idx=reset;
+                idx=DEADLOCK;
                 resetDeadlock(finish);
             }
         }
@@ -216,14 +215,15 @@ params:
 */
 void yieldProcess(int** allocation, int* need, int* yield, int idx){
     int i,j;
+    int size = RESOURCE_NO-1;
     for(i=0;i<PROCESS_NO;i++){
         if (i!=idx){
             for(j=0;j<RESOURCE_NO;j++){
                 if(allocation[i][j] < need[j]){
                     break;
                 }
-                if(j==RESOURCE_NO-1){
-                    yield[i]+=1;
+                if(j==size){
+                    yield[i]++;
                 }
             }
         }
@@ -239,9 +239,8 @@ params:
 */
 void initializeArray(int*array, int size){
     int k;
-    int initialize=0;
     for(k=0;k<size;k++){
-        array[k]=initialize;
+        array[k]=UNFINISH;
     }
 
 }
