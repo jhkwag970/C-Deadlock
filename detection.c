@@ -8,68 +8,151 @@
 #define MAX_RESOURCE 3
 
 
+/*
+printTable:
+    Print the Currently assigned Allocated Recourse, Request Resource by the processes and Avaiable Resource in the system
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int ** request: Resources that processes need to complete the process
+    int* avaiable: All the resources that is not assigned to any processors
+*/
 void printTable(int** allocation, int** request, int* available){
     printf("\nprintTable\n");
     int i,j;
-    printf("--------------------\n");
+    int newLine=2;
+    printf("----------Allocation----------\n");
 
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
             printf("%d ",allocation[i][j]);
-            if(j==2){
+            if(j==newLine){
                 printf("\n");
             }
         }
     }
 
-    printf("--------------------\n");
+    printf("----------Request----------\n");
 
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
             printf("%d ",request[i][j]);
-            if(j==2){ 
+            if(j==newLine){ 
                 printf("\n");
             }
         }
     }
-    printf("--------------------\n");
+    printf("----------Available----------\n");
     for(i=0;i<RESOURCE_NO;i++){
         printf("%d ", available[i]);
     }
-    printf("\n--------------------\n");
+    printf("\n---------------------------\n");
 
 }
+
+/*
+findDeadlock:
+    Check whether any of the processor have not assigned the resource
+params:
+    int * finish: list of processor checklist 0 for unassigned processor, -1 for assinged but cannot be finished, 1 for assigned and finished
+Return:
+    boolean values whether there is notAssigned processor
+*/
 
 bool findDeadlock(int* finish){
-    //printf("findDeadlock\n");
-    
     int i;
+    int notAssigned=0;
     for(i=0;i<PROCESS_NO;i++){
-        if(finish[i]==0){
+        if(finish[i]==notAssigned){
             return true;
         }
     }
     
     return false;
 }
+/*
+resetDealock:
+    Initialize the finsish array that contains the conditon of processor work. If assigned (not satisfy the condtion of finish process), reset to assigned to check again
+params:
+    int * finish: list of processor checklist 0 for unassigned processor, -1 for assinged but cannot be finished, 1 for assigned and finished
+*/
 void resetDeadlock(int* finish){
     int i;
+    int assigned=-1;
+    int notAssigned=0;
     for(i=0;i<PROCESS_NO;i++){
-        if(finish[i]==-1){
-            finish[i]=0;
+        if(finish[i]==assigned){
+            finish[i]=notAssigned;
         }
     }
 }
+/*
+checkDeadlock:
+    check finish array that contains the conditon of processor work. This method run after detecting the deadlock among the processor 
+params:
+    int * finish: list of processor checklist 0 for unassigned processor, -1 for assinged but cannot be finished, 1 for assigned and finished
+returns
+    boolean value true if there is no -1 (processor that is assigned resource but cannot be finished) and false if there is -1
+*/
+
 bool checkDeadlock(int* finish){
     int i;
+    int assignedFailed=-1;
     for(i=0;i<PROCESS_NO;i++){
-        if(finish[i]==-1){
+        if(finish[i]==assignedFailed){
             return true;
         }
     }
 
     return false;
 }
+
+/*
+initializeFinish:
+    initialize the finish array with 0
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int * finish: list of processor checklist 0 for unassigned processor, -1 for assinged but cannot be finished, 1 for assigned and finished
+*/
+
+void initialzieFinish(int* finish, int** allocation){
+    int i,j;
+    int done=0;
+    for(i=0;i<PROCESS_NO;i++){
+        for(j=0;j<RESOURCE_NO;j++){
+            if(allocation[i][j] != done){
+                finish[i]=done;
+                break;
+            }
+        }
+    }
+}
+
+/*
+printFinish:
+    print the values of finish array
+parms:
+    int * finish: list of processor checklist 0 for unassigned processor, -1 for assinged but cannot be finished, 1 for assigned and finished
+*/
+
+void printFinish(int* finish){
+    int i;
+    printf("\n----------Finish----------\n");
+    for(i=0;i<PROCESS_NO;i++){
+        printf("Process %d state: %d\n",i,finish[i]);
+    }
+    printf("\n--------------------------\n");
+}
+
+/*
+detection:
+    detecting the cycle among the processors using the allocation, request, and available.
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int ** request: Resources that processes need to complete the process
+    int* avaiable: All the resources that is not assigned to any processors
+returns
+    boolean value true if there is no -1 (processor that is assigned resource but cannot be finished) and false if there is -1
+*/
 
 bool detection(int** allocation, int** request, int* available){
     printf("\n===================================================================================================================================\n");
@@ -77,23 +160,17 @@ bool detection(int** allocation, int** request, int* available){
     printf("\ndetection\n");
     printTable(allocation, request, available);
     int i,j;
+    int reset=-1;
     int* work = (int*) malloc(sizeof(int)*RESOURCE_NO);
     int* finish = (int*) malloc(sizeof(int)*PROCESS_NO);
 
     memcpy(work, available, RESOURCE_NO*sizeof(int));
-    for(i=0;i<PROCESS_NO;i++){
-        for(j=0;j<RESOURCE_NO;j++){
-            if(allocation[i][j] != 0){
-                finish[i]=0;
-                break;
-            }
-        }
-    }
+    initialzieFinish(finish, allocation);
+
 
     int idx=0;
     bool checkCycle = findDeadlock(finish);    
     while(findDeadlock(finish)){
-        //printf("%d ", idx);
         
         if(finish[idx]==1){
             idx++;
@@ -102,16 +179,15 @@ bool detection(int** allocation, int** request, int* available){
         
         for(i=0;i<RESOURCE_NO;i++){
             if (request[idx][i] > work[i]){
-                finish[idx]=-1;
+                finish[idx]=reset;
                 break;
             }
             if(i==RESOURCE_NO-1){
-                printf("%d ",idx);
                 for(j=0;j<RESOURCE_NO;j++){
                     work[j]+=allocation[idx][j];
                     finish[idx]=1;
                 }
-                idx=-1;
+                idx=reset;
                 resetDeadlock(finish);
             }
         }
@@ -119,20 +195,8 @@ bool detection(int** allocation, int** request, int* available){
         checkCycle = findDeadlock(finish);
         idx++;
     }
-    
-    
-    
 
-    printf("\nAfter work done----------------------\n");
-    for(i=0;i<RESOURCE_NO;i++){
-        printf("%d ",work[i]);
-    }
-    printf("\nAfter finish done----------------------\n");
-    for(i=0;i<PROCESS_NO;i++){
-        printf("%d ",finish[i]);
-    }
-    printf("\n----------------------\n");
-
+    printFinish(finish);
     bool result = checkDeadlock(finish);
     
     free(work);
@@ -142,6 +206,14 @@ bool detection(int** allocation, int** request, int* available){
 }
 
 
+/*
+yieldProcess:
+    check whether allocation resource can be sacrificed to fulfile the request
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int * need: resources that each processor need to finish their processes
+    int *yield: list of processors that contains number that processes are needed to solve the deadlock
+*/
 void yieldProcess(int** allocation, int* need, int* yield, int idx){
     int i,j;
     for(i=0;i<PROCESS_NO;i++){
@@ -158,16 +230,33 @@ void yieldProcess(int** allocation, int* need, int* yield, int idx){
         
     }
 }
+/*
+initialzieArray:
+    initialize the array(yield and need) to have 0 value
+params:
+    int* array: array that will be passed to initialize the value
+    int size: size of array
+*/
 void initializeArray(int*array, int size){
     int k;
+    int initialize=0;
     for(k=0;k<size;k++){
-        array[k]=0;
+        array[k]=initialize;
     }
 
 }
 
+/*
+findVictim:
+    find the vicitim among the processes to solve the deadlock
+params:
+    int *yield: list of processors that contains number that processes are needed to solve the deadlock
+returns:
+    int that is index of yield which is process number that will be sacrificed 
+*/
+
 int findVictim(int* yield){
-    int i, max=0, idx;
+    int i, max=0, idx=0;
     for(i=0;i<PROCESS_NO;i++){
         if(max < yield[i]){
             max=yield[i];
@@ -181,6 +270,39 @@ int findVictim(int* yield){
     
 }
 
+/*
+initializeNeed:
+    intialize need array with the the resouces that current process need (available resource-request resouce)
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int ** request: Resources that processes need to complete the process
+    int* avaiable: All the resources that is not assigned to any processors
+    int * need: resources that each processor need to finish their processes
+    int *yield: list of processors that contains number that processes are needed to solve the deadlock
+*/
+
+void initializeNeed(int** allocation, int** request, int* available, int* need, int* yield){
+    int i,j;
+    for(i=0;i<PROCESS_NO;i++){
+        for(j=0;j<RESOURCE_NO;j++){
+            if(request[i][j] > available[j]){
+                need[j]=request[i][j]-available[j];
+            }
+        }
+        yieldProcess(allocation, need, yield, i);
+        initializeArray(need,RESOURCE_NO);
+    }
+}
+
+/*
+recovery:
+    if there is deadlock find the victim to resolve the deadlock.
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int ** request: Resources that processes need to complete the process
+    int* avaiable: All the resources that is not assigned to any processors
+*/
+
 void recovery(int** allocation,int** request,int* available){
 
     printf("Recovery\n");
@@ -192,35 +314,14 @@ void recovery(int** allocation,int** request,int* available){
     initializeArray(need,RESOURCE_NO);
     initializeArray(yield,PROCESS_NO);
 
-    for(i=0;i<PROCESS_NO;i++){
-        for(j=0;j<RESOURCE_NO;j++){
-            if(request[i][j] > available[j]){
-                need[j]=request[i][j]-available[j];
-            }
-        }
-        /*
-        for(k=0;k<RESOURCE_NO;k++){
-            printf("%d ", need[k]);
-        }printf("\n");
-        */
-        yieldProcess(allocation, need, yield, i);
-        initializeArray(need,RESOURCE_NO);
-    }
-
+    initializeNeed(allocation, request, available, need, yield);
 
     while(detection(allocation, request, available)){
 
-        for(i=0;i<PROCESS_NO;i++){
-            printf("%d ", yield[i]);
-        }
+        printf("Deadlock Detected\n");
 
         int victim = findVictim(yield);
-        printf("\nVictim is %d\n", victim);
-
-        
-        for(i=0;i<PROCESS_NO;i++){
-            printf("%d ", yield[i]);
-        }
+        printf("\nVictim is Process: %d\n", victim);
 
         
         for(i=0;i<RESOURCE_NO;i++){
@@ -229,16 +330,22 @@ void recovery(int** allocation,int** request,int* available){
             allocation[victim][i]=0;
         }
 
-
     }
-    
-    
 
+    printf("No Deadlock\n");
 
     free(yield);
     free(need);
 }
 
+/*
+assignResource:
+    assign the random number of resource to the allocation, request, and avaible
+params:
+    int ** allocation: Resources that are assgined to the processors
+    int ** request: Resources that processes need to complete the process
+    int* avaiable: All the resources that is not assigned to any processors
+*/
 
 void assignResource(int** allocation, int** request, int* available){
     printf("\nassignResource\n");
@@ -248,7 +355,6 @@ void assignResource(int** allocation, int** request, int* available){
         for(j=0;j<RESOURCE_NO;j++){
             int resouce=rand()%MAX_RESOURCE;
             allocation[i][j]=resouce;
-            //request[i][j]=rand()%MAX_RESOURCE;
             resouceMax[j]+=resouce;
         }
     }
@@ -258,18 +364,12 @@ void assignResource(int** allocation, int** request, int* available){
         available[i]=resource;
         resouceMax[i]+=resource;
     }
-    /*
-    printf("\n----------------\n");
-    for(i=0; i<RESOURCE_NO;i++){
-        printf("%d ", resouceMax[i]);
-    }
-    printf("\n----------------\n");
-    */
 
+    int smallResource=0;
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
             int max=resouceMax[j]-3;
-            if(max > 0){
+            if(max > smallResource){
                 request[i][j]=rand()%max;
             }else{
                 int min=1;
@@ -278,6 +378,13 @@ void assignResource(int** allocation, int** request, int* available){
         }
     }
 }
+
+/*
+main:
+    create the avaialble, allocation, request array with dynamic allocation and run assigneResource to initialize the available, allocation, requset array
+    Then, it runs recovery method to find deadlock and recover it if deadlock exists.
+    Then, it frees all the dynamic allocated array.
+*/
  
 int main(){
     srand(time(NULL));
@@ -290,36 +397,11 @@ int main(){
         request[i] = (int*)malloc(sizeof(int)*RESOURCE_NO);
     }
     
- 
+    
     assignResource(allocation, request, available);
-
-    /*
-    bool isDeadlock = detection(allocation, request, available);
-
-    printf("%s\n", isDeadlock ? "true" : "false");
-    */
     
     recovery(allocation,request,available);
-
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
 
     for(i=0; i<PROCESS_NO;i++){
         free(allocation[i]);
@@ -328,5 +410,4 @@ int main(){
     free(allocation);
     free(request);
     free(available);
-    
 }
