@@ -1,4 +1,4 @@
-<h1>Deadlock Detection and Recovery<h1>
+<h1>Deadlock Detection and Recovery</h1>
 
 In they OS, after process are assgined the resources, they are not volantilry give up the resources until they can finish the processs.And deadlock is occured whene there are cycle among the process. Specificly, no process cannot finish their work with the avaiable resources in the system. Thus, using the deadlock detection algorithm, user can decide whether there is a deadlock among process. Then, if there is deadlock, use the recovery alogirthm to resolve the cycle.  
 
