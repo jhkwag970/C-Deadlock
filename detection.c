@@ -364,11 +364,11 @@ void assignResource(int** allocation, int** request, int* available){
         resouceMax[i]+=resource;
     }
 
-    int smallResource=0;
+    int resouceControll=3;
     for(i=0;i<PROCESS_NO;i++){
         for(j=0;j<RESOURCE_NO;j++){
-            int max=resouceMax[j]-3;
-            if(max > smallResource){
+            int max=resouceMax[j]-resouceControll;
+            if(max > UNFINISH){
                 request[i][j]=rand()%max;
             }else{
                 int min=1;
